@@ -1,12 +1,21 @@
 import { gql } from '@apollo/client';
 
-import { ProductContentFull } from '../fragments/product';
+import { productContentFullFragment, variationContentFragment } from '../fragments/product';
 
-export const GetProduct = gql`
-  query GetProduct($id: ID!, $idType: ProductIdTypeEnum) {
+export const getProductQuery = gql`
+  query getProduct($id: ID!, $idType: ProductIdTypeEnum) {
     product(id: $id, idType: $idType) {
-      ...ProductContentFull
+      ...productContentFull
     }
   }
-  ${ProductContentFull}
+  ${productContentFullFragment}
+`;
+
+export const getProductVariationQuery = gql`
+  query getProductVariation($id: ID!) {
+    productVariation(id: $id, idType: DATABASE_ID) {
+      ...variationContent
+    }
+  }
+  ${variationContentFragment}
 `;

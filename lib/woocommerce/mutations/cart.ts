@@ -1,9 +1,13 @@
 import { gql } from '@apollo/client';
 
-import { CartContent, CartItemContent, CustomerContent } from '../fragments/cart';
+import {
+  cartContentFragment,
+  cartItemContentFragment,
+  customerContentFragment
+} from '../fragments/cart';
 
-export const AddToCart = gql`
-  mutation AddToCart($productId: Int!, $variationId: Int, $quantity: Int, $extraData: String) {
+export const addToCartMutation = gql`
+  mutation addToCart($productId: Int!, $variationId: Int, $quantity: Int, $extraData: String) {
     addToCart(
       input: {
         productId: $productId
@@ -13,82 +17,82 @@ export const AddToCart = gql`
       }
     ) {
       cart {
-        ...CartContent
+        ...cartContent
       }
       cartItem {
-        ...CartItemContent
+        ...cartItemContent
       }
     }
   }
-  ${CartContent}
-  ${CartItemContent}
+  ${cartContentFragment}
+  ${cartItemContentFragment}
 `;
 
-export const UpdateCartItemQuantities = gql`
-  mutation UpdateCartItemQuantities($items: [CartItemQuantityInput]) {
+export const updateCartItemQuantitiesMutation = gql`
+  mutation updateCartItemQuantities($items: [CartItemQuantityInput]) {
     updateItemQuantities(input: { items: $items }) {
       cart {
-        ...CartContent
+        ...cartContent
       }
       items {
-        ...CartItemContent
+        ...cartItemContent
       }
     }
   }
-  ${CartContent}
-  ${CartItemContent}
+  ${cartContentFragment}
+  ${cartItemContentFragment}
 `;
 
-export const RemoveItemsFromCart = gql`
-  mutation RemoveItemsFromCart($keys: [ID], $all: Boolean) {
+export const removeItemsFromCartMutation = gql`
+  mutation removeItemsFromCart($keys: [ID], $all: Boolean) {
     removeItemsFromCart(input: { keys: $keys, all: $all }) {
       cart {
-        ...CartContent
+        ...cartContent
       }
       cartItems {
-        ...CartItemContent
+        ...cartItemContent
       }
     }
   }
-  ${CartContent}
-  ${CartItemContent}
+  ${cartContentFragment}
+  ${cartItemContentFragment}
 `;
 
-export const ApplyCouponToCart = gql`
-  mutation ApplyCouponToCart($code: String!) {
+export const applyCouponToCartMutation = gql`
+  mutation applyCouponToCart($code: String!) {
     applyCoupon(input: { code: $code }) {
       cart {
-        ...CartContent
+        ...cartContent
       }
     }
   }
-  ${CartContent}
+  ${cartContentFragment}
 `;
 
-export const RemoveCouponFromCart = gql`
-  mutation RemoveCouponFromCart($code: String!) {
+export const removeCouponFromCartMutation = gql`
+  mutation removeCouponFromCart($code: String!) {
     removeCoupons(input: { codes: [$code] }) {
       cart {
-        ...CartContent
+        ...cartContent
       }
     }
   }
-  ${CartContent}
+  ${cartContentFragment}
 `;
 
-export const RemoveCouponsFromCart = gql`
-  mutation RemoveCouponsFromCart($codes: [String!]) {
+export const removeCouponsFromCartMutation = gql`
+  mutation removeCouponsFromCart($codes: [String!]) {
     removeCoupons(input: { codes: $codes }) {
       cart {
-        ...CartContent
+        ...cartContent
       }
     }
   }
-  ${CartContent}
+  ${cartContentFragment}
 `;
 
-export const SetShippingLocale = gql`
-  mutation SetShippingLocale(
+export const setShippingLocaleMutation = gql`
+  mutation setShippingLocale(
     $zip: String!
     $state: String
     $city: String
@@ -98,20 +102,20 @@ export const SetShippingLocale = gql`
       input: { shipping: { postcode: $zip, country: $country, state: $state, city: $city } }
     ) {
       customer {
-        ...CustomerContent
+        ...customerContent
       }
     }
   }
-  ${CustomerContent}
+  ${customerContentFragment}
 `;
 
-export const SetShippingMethod = gql`
-  mutation SetShippingMethod($shippingMethod: String!) {
+export const setShippingMethodMutation = gql`
+  mutation setShippingMethod($shippingMethod: String!) {
     updateShippingMethod(input: { shippingMethods: [$shippingMethod] }) {
       cart {
-        ...CartContent
+        ...cartContent
       }
     }
   }
-  ${CartContent}
+  ${cartContentFragment}
 `;

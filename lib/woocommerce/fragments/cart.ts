@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 
-export const CustomerContent = gql`
-  fragment CustomerContent on Customer {
+export const customerContentFragment = gql`
+  fragment customerContent on Customer {
     id
     sessionToken
     shipping {
@@ -13,8 +13,8 @@ export const CustomerContent = gql`
   }
 `;
 
-export const ProductContentSlice = gql`
-  fragment ProductContentSlice on Product {
+export const productContentSliceFragment = gql`
+  fragment productContentSlice on Product {
     id
     databaseId
     name
@@ -38,8 +38,8 @@ export const ProductContentSlice = gql`
   }
 `;
 
-export const ProductVariationContentSlice = gql`
-  fragment ProductVariationContentSlice on ProductVariation {
+export const productVariationContentSliceFragment = gql`
+  fragment productVariationContentSlice on ProductVariation {
     id
     databaseId
     name
@@ -54,36 +54,17 @@ export const ProductVariationContentSlice = gql`
   }
 `;
 
-export const VariationContent = gql`
-  fragment VariationContent on ProductVariation {
-    id
-    name
-    slug
-    price
-    regularPrice
-    salePrice
-    stockStatus
-    stockQuantity
-    onSale
-    image {
-      id
-      sourceUrl
-      altText
-    }
-  }
-`;
-
-export const CartItemContent = gql`
-  fragment CartItemContent on CartItem {
+export const cartItemContentFragment = gql`
+  fragment cartItemContent on CartItem {
     key
     product {
       node {
-        ...ProductContentSlice
+        ...productContentSlice
       }
     }
     variation {
       node {
-        ...ProductVariationContentSlice
+        ...productVariationContentSlice
       }
     }
     quantity
@@ -95,14 +76,16 @@ export const CartItemContent = gql`
       value
     }
   }
+  ${productContentSliceFragment}
+  ${productVariationContentSliceFragment}
 `;
 
-export const CartContent = gql`
-  fragment CartContent on Cart {
+export const cartContentFragment = gql`
+  fragment cartContent on Cart {
     contents(first: 100) {
       itemCount
       nodes {
-        ...CartItemContent
+        ...cartItemContent
       }
     }
     appliedCoupons {
@@ -133,4 +116,5 @@ export const CartContent = gql`
     discountTax
     discountTotal
   }
+  ${cartItemContentFragment}
 `;
