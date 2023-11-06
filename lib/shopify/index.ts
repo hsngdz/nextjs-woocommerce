@@ -1,5 +1,5 @@
-import { HIDDEN_PRODUCT_TAG, SHOPIFY_GRAPHQL_API_ENDPOINT, TAGS } from 'lib/constants';
-import { isShopifyError } from 'lib/type-guards';
+import { HIDDEN_PRODUCT_TAG, TAGS, WOOCOMMERCE_GRAPHQL_API_ENDPOINT } from 'lib/constants';
+import { isWooCommerceError } from 'lib/type-guards';
 import { ensureStartsWith } from 'lib/utils';
 import { revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
@@ -31,30 +31,30 @@ import {
   Menu,
   Page,
   Product,
-  ShopifyAddToCartOperation,
-  ShopifyCart,
-  ShopifyCartOperation,
-  ShopifyCollection,
-  ShopifyCollectionOperation,
-  ShopifyCollectionProductsOperation,
-  ShopifyCollectionsOperation,
-  ShopifyCreateCartOperation,
-  ShopifyMenuOperation,
-  ShopifyPageOperation,
-  ShopifyPagesOperation,
-  ShopifyProduct,
-  ShopifyProductOperation,
-  ShopifyProductRecommendationsOperation,
-  ShopifyProductsOperation,
-  ShopifyRemoveFromCartOperation,
-  ShopifyUpdateCartOperation
+  WooCommerceAddToCartOperation,
+  WooCommerceCart,
+  WooCommerceCartOperation,
+  WooCommerceCollection,
+  WooCommerceCollectionOperation,
+  WooCommerceCollectionProductsOperation,
+  WooCommerceCollectionsOperation,
+  WooCommerceCreateCartOperation,
+  WooCommerceMenuOperation,
+  WooCommercePageOperation,
+  WooCommercePagesOperation,
+  WooCommerceProduct,
+  WooCommerceProductOperation,
+  WooCommerceProductRecommendationsOperation,
+  WooCommerceProductsOperation,
+  WooCommerceRemoveFromCartOperation,
+  WooCommerceUpdateCartOperation
 } from './types';
 
-const domain = process.env.SHOPIFY_STORE_DOMAIN
-  ? ensureStartsWith(process.env.SHOPIFY_STORE_DOMAIN, 'https://')
+const domain = process.env.WOOCOMMERCE_STORE_DOMAIN
+  ? ensureStartsWith(process.env.WOOCOMMERCE_STORE_DOMAIN, 'https://')
   : '';
-const endpoint = `${domain}${SHOPIFY_GRAPHQL_API_ENDPOINT}`;
-const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN!;
+const endpoint = `${domain}${WOOCOMMERCE_GRAPHQL_API_ENDPOINT}`;
+const key = process.env.WOOCOMMERCE_STOREFRONT_ACCESS_TOKEN!;
 
 type ExtractVariables<T> = T extends { variables: object } ? T['variables'] : never;
 
@@ -76,7 +76,7 @@ export async function shopifyFetch<T>({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': key,
+        'X-WooCommerce-Storefront-Access-Token': key,
         ...headers
       },
       body: JSON.stringify({
@@ -98,7 +98,7 @@ export async function shopifyFetch<T>({
       body
     };
   } catch (e) {
-    if (isShopifyError(e)) {
+    if (isWooCommerceError(e)) {
       throw {
         cause: e.cause?.toString() || 'unknown',
         status: e.status || 500,
@@ -118,7 +118,7 @@ const removeEdgesAndNodes = (array: Connection<any>) => {
   return array.edges.map((edge) => edge?.node);
 };
 
-const reshapeCart = (cart: ShopifyCart): Cart => {
+const reshapeCart = (cart: WooCommerceCart): Cart => {
   if (!cart.cost?.totalTaxAmount) {
     cart.cost.totalTaxAmount = {
       amount: '0.0',
@@ -132,7 +132,7 @@ const reshapeCart = (cart: ShopifyCart): Cart => {
   };
 };
 
-const reshapeCollection = (collection: ShopifyCollection): Collection | undefined => {
+const reshapeCollection = (collection: WooCommerceCollection): Collection | undefined => {
   if (!collection) {
     return undefined;
   }
@@ -143,7 +143,7 @@ const reshapeCollection = (collection: ShopifyCollection): Collection | undefine
   };
 };
 
-const reshapeCollections = (collections: ShopifyCollection[]) => {
+const reshapeCollections = (collections: WooCommerceCollection[]) => {
   const reshapedCollections = [];
 
   for (const collection of collections) {
@@ -171,7 +171,7 @@ const reshapeImages = (images: Connection<Image>, productTitle: string) => {
   });
 };
 
-const reshapeProduct = (product: ShopifyProduct, filterHiddenProducts: boolean = true) => {
+const reshapeProduct = (product: WooCommerceProduct, filterHiddenProducts: boolean = true) => {
   if (!product || (filterHiddenProducts && product.tags.includes(HIDDEN_PRODUCT_TAG))) {
     return undefined;
   }
@@ -185,7 +185,7 @@ const reshapeProduct = (product: ShopifyProduct, filterHiddenProducts: boolean =
   };
 };
 
-const reshapeProducts = (products: ShopifyProduct[]) => {
+const reshapeProducts = (products: WooCommerceProduct[]) => {
   const reshapedProducts = [];
 
   for (const product of products) {
@@ -202,7 +202,7 @@ const reshapeProducts = (products: ShopifyProduct[]) => {
 };
 
 export async function createCart(): Promise<Cart> {
-  const res = await shopifyFetch<ShopifyCreateCartOperation>({
+  const res = await shopifyFetch<WooCommerceCreateCartOperation>({
     query: createCartMutation,
     cache: 'no-store'
   });
@@ -214,7 +214,7 @@ export async function addToCart(
   cartId: string,
   lines: { merchandiseId: string; quantity: number }[]
 ): Promise<Cart> {
-  const res = await shopifyFetch<ShopifyAddToCartOperation>({
+  const res = await shopifyFetch<WooCommerceAddToCartOperation>({
     query: addToCartMutation,
     variables: {
       cartId,
@@ -226,7 +226,7 @@ export async function addToCart(
 }
 
 export async function removeFromCart(cartId: string, lineIds: string[]): Promise<Cart> {
-  const res = await shopifyFetch<ShopifyRemoveFromCartOperation>({
+  const res = await shopifyFetch<WooCommerceRemoveFromCartOperation>({
     query: removeFromCartMutation,
     variables: {
       cartId,
@@ -242,7 +242,7 @@ export async function updateCart(
   cartId: string,
   lines: { id: string; merchandiseId: string; quantity: number }[]
 ): Promise<Cart> {
-  const res = await shopifyFetch<ShopifyUpdateCartOperation>({
+  const res = await shopifyFetch<WooCommerceUpdateCartOperation>({
     query: editCartItemsMutation,
     variables: {
       cartId,
@@ -255,7 +255,7 @@ export async function updateCart(
 }
 
 export async function getCart(cartId: string): Promise<Cart | undefined> {
-  const res = await shopifyFetch<ShopifyCartOperation>({
+  const res = await shopifyFetch<WooCommerceCartOperation>({
     query: getCartQuery,
     variables: { cartId },
     tags: [TAGS.cart],
@@ -271,7 +271,7 @@ export async function getCart(cartId: string): Promise<Cart | undefined> {
 }
 
 export async function getCollection(handle: string): Promise<Collection | undefined> {
-  const res = await shopifyFetch<ShopifyCollectionOperation>({
+  const res = await shopifyFetch<WooCommerceCollectionOperation>({
     query: getCollectionQuery,
     tags: [TAGS.collections],
     variables: {
@@ -291,7 +291,7 @@ export async function getCollectionProducts({
   reverse?: boolean;
   sortKey?: string;
 }): Promise<Product[]> {
-  const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
+  const res = await shopifyFetch<WooCommerceCollectionProductsOperation>({
     query: getCollectionProductsQuery,
     tags: [TAGS.collections, TAGS.products],
     variables: {
@@ -310,7 +310,7 @@ export async function getCollectionProducts({
 }
 
 export async function getCollections(): Promise<Collection[]> {
-  const res = await shopifyFetch<ShopifyCollectionsOperation>({
+  const res = await shopifyFetch<WooCommerceCollectionsOperation>({
     query: getCollectionsQuery,
     tags: [TAGS.collections]
   });
@@ -338,7 +338,7 @@ export async function getCollections(): Promise<Collection[]> {
 }
 
 export async function getMenu(handle: string): Promise<Menu[]> {
-  const res = await shopifyFetch<ShopifyMenuOperation>({
+  const res = await shopifyFetch<WooCommerceMenuOperation>({
     query: getMenuQuery,
     tags: [TAGS.collections],
     variables: {
@@ -355,7 +355,7 @@ export async function getMenu(handle: string): Promise<Menu[]> {
 }
 
 export async function getPage(handle: string): Promise<Page> {
-  const res = await shopifyFetch<ShopifyPageOperation>({
+  const res = await shopifyFetch<WooCommercePageOperation>({
     query: getPageQuery,
     variables: { handle }
   });
@@ -364,7 +364,7 @@ export async function getPage(handle: string): Promise<Page> {
 }
 
 export async function getPages(): Promise<Page[]> {
-  const res = await shopifyFetch<ShopifyPagesOperation>({
+  const res = await shopifyFetch<WooCommercePagesOperation>({
     query: getPagesQuery
   });
 
@@ -372,7 +372,7 @@ export async function getPages(): Promise<Page[]> {
 }
 
 export async function getProduct(handle: string): Promise<Product | undefined> {
-  const res = await shopifyFetch<ShopifyProductOperation>({
+  const res = await shopifyFetch<WooCommerceProductOperation>({
     query: getProductQuery,
     tags: [TAGS.products],
     variables: {
@@ -384,7 +384,7 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
 }
 
 export async function getProductRecommendations(productId: string): Promise<Product[]> {
-  const res = await shopifyFetch<ShopifyProductRecommendationsOperation>({
+  const res = await shopifyFetch<WooCommerceProductRecommendationsOperation>({
     query: getProductRecommendationsQuery,
     tags: [TAGS.products],
     variables: {
@@ -404,7 +404,7 @@ export async function getProducts({
   reverse?: boolean;
   sortKey?: string;
 }): Promise<Product[]> {
-  const res = await shopifyFetch<ShopifyProductsOperation>({
+  const res = await shopifyFetch<WooCommerceProductsOperation>({
     query: getProductsQuery,
     tags: [TAGS.products],
     variables: {
@@ -419,7 +419,7 @@ export async function getProducts({
 
 // This is called from `app/api/revalidate.ts` so providers can control revalidation logic.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
-  // We always need to respond with a 200 status code to Shopify,
+  // We always need to respond with a 200 status code to WooCommerce,
   // otherwise it will continue to retry the request.
   const collectionWebhooks = ['collections/create', 'collections/delete', 'collections/update'];
   const productWebhooks = ['products/create', 'products/delete', 'products/update'];
@@ -428,7 +428,7 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   const isCollectionUpdate = collectionWebhooks.includes(topic);
   const isProductUpdate = productWebhooks.includes(topic);
 
-  if (!secret || secret !== process.env.SHOPIFY_REVALIDATION_SECRET) {
+  if (!secret || secret !== process.env.WOOCOMMERCE_REVALIDATION_SECRET) {
     console.error('Invalid revalidation secret.');
     return NextResponse.json({ status: 200 });
   }

@@ -1,30 +1,79 @@
-import imageFragment from './image';
-import seoFragment from './seo';
+import { gql } from '@apollo/client';
 
-const productFragment = /* GraphQL */ `
-  fragment product on Product {
+export const ProductContentFull = gql`
+  fragment ProductContentFull on Product {
     id
-    idType
+    databaseId
     slug
-    purchasable
     name
+    type
     description
+    shortDescription(format: RAW)
+    image {
+      id
+      sourceUrl
+      altText
+    }
+    galleryImages {
+      nodes {
+        id
+        sourceUrl(size: WOOCOMMERCE_THUMBNAIL)
+        altText
+      }
+    }
+    productTags(first: 20) {
+      nodes {
+        id
+        slug
+        name
+      }
+    }
     attributes {
       nodes {
         id
-        name
-        label
-        options
+        attributeId
+        ... on LocalProductAttribute {
+          name
+          options
+          variation
+        }
+        ... on GlobalProductAttribute {
+          name
+          options
+          variation
+        }
       }
     }
+    ... on SimpleProduct {
+      onSale
+      stockStatus
+      price
+      rawPrice: price(format: RAW)
+      regularPrice
+      salePrice
+      stockStatus
+      stockQuantity
+      soldIndividually
+    }
     ... on VariableProduct {
+      onSale
+      price
+      rawPrice: price(format: RAW)
+      regularPrice
+      salePrice
+      stockStatus
+      stockQuantity
+      soldIndividually
       variations(first: 50) {
         nodes {
           id
+          databaseId
           name
           price
-          purchasable
           rawPrice: price(format: RAW)
+          regularPrice
+          salePrice
+          onSale
           attributes {
             nodes {
               name
@@ -33,33 +82,7 @@ const productFragment = /* GraphQL */ `
             }
           }
         }
-    }
-    featuredImage {
-      node {
-        ...image
       }
     }
-    galleryImages(first: 20) {
-      edges {
-        node {
-          ...image
-        }
-      }
-    }
-    seo {
-      ...seo
-    }
-    productTags {
-      edges {
-        node {
-          name
-        }
-      }
-    }
-    modified
   }
-  ${imageFragment}
-  ${seoFragment}
 `;
-
-export default productFragment;
