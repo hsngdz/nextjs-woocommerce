@@ -1,6 +1,4 @@
-import { gql } from '@apollo/client';
-
-export const nodeByUriQuery = gql`
+export const nodeByUriQuery = /* GraphQL */ `
   query nodeByUri($uri: ID!) {
     nodeByUri(uri: $uri) {
       ... on Product {

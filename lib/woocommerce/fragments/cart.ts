@@ -1,6 +1,4 @@
-import { gql } from '@apollo/client';
-
-export const customerContentFragment = gql`
+export const customerContentFragment = /* GraphQL */ `
   fragment customerContent on Customer {
     id
     sessionToken
@@ -13,7 +11,7 @@ export const customerContentFragment = gql`
   }
 `;
 
-export const productContentSliceFragment = gql`
+export const productContentSliceFragment = /* GraphQL */ `
   fragment productContentSlice on Product {
     id
     databaseId
@@ -38,7 +36,7 @@ export const productContentSliceFragment = gql`
   }
 `;
 
-export const productVariationContentSliceFragment = gql`
+export const productVariationContentSliceFragment = /* GraphQL */ `
   fragment productVariationContentSlice on ProductVariation {
     id
     databaseId
@@ -54,7 +52,7 @@ export const productVariationContentSliceFragment = gql`
   }
 `;
 
-export const cartItemContentFragment = gql`
+export const cartItemContentFragment = /* GraphQL */ `
   fragment cartItemContent on CartItem {
     key
     product {
@@ -80,7 +78,7 @@ export const cartItemContentFragment = gql`
   ${productVariationContentSliceFragment}
 `;
 
-export const cartContentFragment = gql`
+export const cartContentFragment = /* GraphQL */ `
   fragment cartContent on Cart {
     contents(first: 100) {
       itemCount

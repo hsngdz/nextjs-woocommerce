@@ -16,12 +16,12 @@ export default async function HomePage() {
   return (
     <>
       <ThreeItemGrid />
-      <Suspense>
+      {/* <Suspense>
         <Carousel />
         <Suspense>
           <Footer />
         </Suspense>
-      </Suspense>
+      </Suspense> */}
     </>
   );
 }

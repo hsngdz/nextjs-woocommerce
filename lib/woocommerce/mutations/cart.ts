@@ -1,12 +1,10 @@
-import { gql } from '@apollo/client';
-
 import {
   cartContentFragment,
   cartItemContentFragment,
   customerContentFragment
 } from '../fragments/cart';
 
-export const addToCartMutation = gql`
+export const addToCartMutation = /* GraphQL */ `
   mutation addToCart($productId: Int!, $variationId: Int, $quantity: Int, $extraData: String) {
     addToCart(
       input: {
@@ -28,7 +26,7 @@ export const addToCartMutation = gql`
   ${cartItemContentFragment}
 `;
 
-export const updateCartItemQuantitiesMutation = gql`
+export const updateCartItemQuantitiesMutation = /* GraphQL */ `
   mutation updateCartItemQuantities($items: [CartItemQuantityInput]) {
     updateItemQuantities(input: { items: $items }) {
       cart {
@@ -43,7 +41,7 @@ export const updateCartItemQuantitiesMutation = gql`
   ${cartItemContentFragment}
 `;
 
-export const removeItemsFromCartMutation = gql`
+export const removeItemsFromCartMutation = /* GraphQL */ `
   mutation removeItemsFromCart($keys: [ID], $all: Boolean) {
     removeItemsFromCart(input: { keys: $keys, all: $all }) {
       cart {
@@ -58,7 +56,7 @@ export const removeItemsFromCartMutation = gql`
   ${cartItemContentFragment}
 `;
 
-export const applyCouponToCartMutation = gql`
+export const applyCouponToCartMutation = /* GraphQL */ `
   mutation applyCouponToCart($code: String!) {
     applyCoupon(input: { code: $code }) {
       cart {
@@ -69,7 +67,7 @@ export const applyCouponToCartMutation = gql`
   ${cartContentFragment}
 `;
 
-export const removeCouponFromCartMutation = gql`
+export const removeCouponFromCartMutation = /* GraphQL */ `
   mutation removeCouponFromCart($code: String!) {
     removeCoupons(input: { codes: [$code] }) {
       cart {
@@ -80,7 +78,7 @@ export const removeCouponFromCartMutation = gql`
   ${cartContentFragment}
 `;
 
-export const removeCouponsFromCartMutation = gql`
+export const removeCouponsFromCartMutation = /* GraphQL */ `
   mutation removeCouponsFromCart($codes: [String!]) {
     removeCoupons(input: { codes: $codes }) {
       cart {
@@ -91,7 +89,7 @@ export const removeCouponsFromCartMutation = gql`
   ${cartContentFragment}
 `;
 
-export const setShippingLocaleMutation = gql`
+export const setShippingLocaleMutation = /* GraphQL */ `
   mutation setShippingLocale(
     $zip: String!
     $state: String
@@ -109,7 +107,7 @@ export const setShippingLocaleMutation = gql`
   ${customerContentFragment}
 `;
 
-export const setShippingMethodMutation = gql`
+export const setShippingMethodMutation = /* GraphQL */ `
   mutation setShippingMethod($shippingMethod: String!) {
     updateShippingMethod(input: { shippingMethods: [$shippingMethod] }) {
       cart {

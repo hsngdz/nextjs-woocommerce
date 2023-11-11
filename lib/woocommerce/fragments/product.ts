@@ -1,7 +1,5 @@
-import { gql } from '@apollo/client';
-
-export const productContentFullFragment = gql`
-  fragment productContentFull on Product {
+export const productFragment = /* GraphQL */ `
+  fragment product on Product {
     id
     databaseId
     slug
@@ -83,25 +81,6 @@ export const productContentFullFragment = gql`
           }
         }
       }
-    }
-  }
-`;
-
-export const variationContentFragment = gql`
-  fragment variationContent on ProductVariation {
-    id
-    name
-    slug
-    price
-    regularPrice
-    salePrice
-    stockStatus
-    stockQuantity
-    onSale
-    image {
-      id
-      sourceUrl
-      altText
     }
   }
 `;

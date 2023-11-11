@@ -195,12 +195,12 @@ export type WooCommerceCollectionOperation = {
 
 export type WooCommerceCollectionProductsOperation = {
   data: {
-    collection: {
-      products: Connection<WooCommerceProduct>;
-    };
+    products: Connection<WooCommerceProduct>;
   };
   variables: {
-    handle: string;
+    where: {
+      tag: string;
+    };
     reverse?: boolean;
     sortKey?: string;
   };
@@ -222,7 +222,7 @@ export type WooCommerceMenuOperation = {
     };
   };
   variables: {
-    handle: string;
+    id: string;
   };
 };
 

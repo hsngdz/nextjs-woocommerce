@@ -4,25 +4,12 @@ import { ensureStartsWith } from 'lib/utils';
 import { revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  addToCartMutation,
-  createCartMutation,
-  editCartItemsMutation,
-  removeFromCartMutation
-} from './mutations/cart';
+import { addToCartMutation } from './mutations/cart';
 import { getCartQuery } from './queries/cart';
-import {
-  getCollectionProductsQuery,
-  getCollectionQuery,
-  getCollectionsQuery
-} from './queries/collection';
+import { getCollectionProductsQuery } from './queries/collection';
 import { getMenuQuery } from './queries/menu';
-import { getPageQuery, getPagesQuery } from './queries/page';
-import {
-  getProductQuery,
-  getProductRecommendationsQuery,
-  getProductsQuery
-} from './queries/product';
+//import { getPageQuery, getPagesQuery } from './queries/page';
+import { getProductQuery } from './queries/product';
 import {
   Cart,
   Collection,
@@ -58,7 +45,7 @@ const key = process.env.WOOCOMMERCE_STOREFRONT_ACCESS_TOKEN!;
 
 type ExtractVariables<T> = T extends { variables: object } ? T['variables'] : never;
 
-export async function shopifyFetch<T>({
+export async function woocommerceFetch<T>({
   cache = 'force-cache',
   headers,
   query,
@@ -76,7 +63,7 @@ export async function shopifyFetch<T>({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-WooCommerce-Storefront-Access-Token': key,
+        'woocommerce-session': `Session ${key}`,
         ...headers
       },
       body: JSON.stringify({
@@ -171,7 +158,10 @@ const reshapeImages = (images: Connection<Image>, productTitle: string) => {
   });
 };
 
-const reshapeProduct = (product: WooCommerceProduct, filterHiddenProducts: boolean = true) => {
+const reshapeProduct = (
+  product: WooCommerceProduct | any,
+  filterHiddenProducts: boolean = true
+) => {
   if (!product || (filterHiddenProducts && product.tags.includes(HIDDEN_PRODUCT_TAG))) {
     return undefined;
   }
@@ -185,7 +175,7 @@ const reshapeProduct = (product: WooCommerceProduct, filterHiddenProducts: boole
   };
 };
 
-const reshapeProducts = (products: WooCommerceProduct[]) => {
+const reshapeProducts = (products: WooCommerceProduct[] | any) => {
   const reshapedProducts = [];
 
   for (const product of products) {
@@ -202,7 +192,7 @@ const reshapeProducts = (products: WooCommerceProduct[]) => {
 };
 
 export async function createCart(): Promise<Cart> {
-  const res = await shopifyFetch<WooCommerceCreateCartOperation>({
+  const res = await woocommerceFetch<WooCommerceCreateCartOperation>({
     query: createCartMutation,
     cache: 'no-store'
   });
@@ -214,7 +204,7 @@ export async function addToCart(
   cartId: string,
   lines: { merchandiseId: string; quantity: number }[]
 ): Promise<Cart> {
-  const res = await shopifyFetch<WooCommerceAddToCartOperation>({
+  const res = await woocommerceFetch<WooCommerceAddToCartOperation>({
     query: addToCartMutation,
     variables: {
       cartId,
@@ -226,7 +216,7 @@ export async function addToCart(
 }
 
 export async function removeFromCart(cartId: string, lineIds: string[]): Promise<Cart> {
-  const res = await shopifyFetch<WooCommerceRemoveFromCartOperation>({
+  const res = await woocommerceFetch<WooCommerceRemoveFromCartOperation>({
     query: removeFromCartMutation,
     variables: {
       cartId,
@@ -242,7 +232,7 @@ export async function updateCart(
   cartId: string,
   lines: { id: string; merchandiseId: string; quantity: number }[]
 ): Promise<Cart> {
-  const res = await shopifyFetch<WooCommerceUpdateCartOperation>({
+  const res = await woocommerceFetch<WooCommerceUpdateCartOperation>({
     query: editCartItemsMutation,
     variables: {
       cartId,
@@ -255,7 +245,7 @@ export async function updateCart(
 }
 
 export async function getCart(cartId: string): Promise<Cart | undefined> {
-  const res = await shopifyFetch<WooCommerceCartOperation>({
+  const res = await woocommerceFetch<WooCommerceCartOperation>({
     query: getCartQuery,
     variables: { cartId },
     tags: [TAGS.cart],
@@ -271,7 +261,7 @@ export async function getCart(cartId: string): Promise<Cart | undefined> {
 }
 
 export async function getCollection(handle: string): Promise<Collection | undefined> {
-  const res = await shopifyFetch<WooCommerceCollectionOperation>({
+  const res = await woocommerceFetch<WooCommerceCollectionOperation>({
     query: getCollectionQuery,
     tags: [TAGS.collections],
     variables: {
@@ -283,34 +273,29 @@ export async function getCollection(handle: string): Promise<Collection | undefi
 }
 
 export async function getCollectionProducts({
-  collection,
-  reverse,
-  sortKey
+  collection
 }: {
   collection: string;
-  reverse?: boolean;
-  sortKey?: string;
 }): Promise<Product[]> {
-  const res = await shopifyFetch<WooCommerceCollectionProductsOperation>({
+  const res = await woocommerceFetch<WooCommerceCollectionProductsOperation>({
     query: getCollectionProductsQuery,
     tags: [TAGS.collections, TAGS.products],
     variables: {
-      handle: collection,
-      reverse,
-      sortKey: sortKey === 'CREATED_AT' ? 'CREATED' : sortKey
+      where: { tag: collection }
     }
   });
+  console.log(res);
 
-  if (!res.body.data.collection) {
+  if (!res.body.data.products) {
     console.log(`No collection found for \`${collection}\``);
     return [];
   }
 
-  return reshapeProducts(removeEdgesAndNodes(res.body.data.collection.products));
+  return reshapeProducts(removeEdgesAndNodes(res.body.data.products));
 }
 
 export async function getCollections(): Promise<Collection[]> {
-  const res = await shopifyFetch<WooCommerceCollectionsOperation>({
+  const res = await woocommerceFetch<WooCommerceCollectionsOperation>({
     query: getCollectionsQuery,
     tags: [TAGS.collections]
   });
@@ -337,12 +322,12 @@ export async function getCollections(): Promise<Collection[]> {
   return collections;
 }
 
-export async function getMenu(handle: string): Promise<Menu[]> {
-  const res = await shopifyFetch<WooCommerceMenuOperation>({
+export async function getMenu(id: string): Promise<Menu[]> {
+  const res = await woocommerceFetch<WooCommerceMenuOperation>({
     query: getMenuQuery,
     tags: [TAGS.collections],
     variables: {
-      handle
+      id
     }
   });
 
@@ -355,7 +340,7 @@ export async function getMenu(handle: string): Promise<Menu[]> {
 }
 
 export async function getPage(handle: string): Promise<Page> {
-  const res = await shopifyFetch<WooCommercePageOperation>({
+  const res = await woocommerceFetch<WooCommercePageOperation>({
     query: getPageQuery,
     variables: { handle }
   });
@@ -364,7 +349,7 @@ export async function getPage(handle: string): Promise<Page> {
 }
 
 export async function getPages(): Promise<Page[]> {
-  const res = await shopifyFetch<WooCommercePagesOperation>({
+  const res = await woocommerceFetch<WooCommercePagesOperation>({
     query: getPagesQuery
   });
 
@@ -372,7 +357,7 @@ export async function getPages(): Promise<Page[]> {
 }
 
 export async function getProduct(handle: string): Promise<Product | undefined> {
-  const res = await shopifyFetch<WooCommerceProductOperation>({
+  const res = await woocommerceFetch<WooCommerceProductOperation>({
     query: getProductQuery,
     tags: [TAGS.products],
     variables: {
@@ -384,7 +369,7 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
 }
 
 export async function getProductRecommendations(productId: string): Promise<Product[]> {
-  const res = await shopifyFetch<WooCommerceProductRecommendationsOperation>({
+  const res = await woocommerceFetch<WooCommerceProductRecommendationsOperation>({
     query: getProductRecommendationsQuery,
     tags: [TAGS.products],
     variables: {
@@ -404,7 +389,7 @@ export async function getProducts({
   reverse?: boolean;
   sortKey?: string;
 }): Promise<Product[]> {
-  const res = await shopifyFetch<WooCommerceProductsOperation>({
+  const res = await woocommerceFetch<WooCommerceProductsOperation>({
     query: getProductsQuery,
     tags: [TAGS.products],
     variables: {
